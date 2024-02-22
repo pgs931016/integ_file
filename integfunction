@@ -1,0 +1,84 @@
+function integrateMatFiles(dirPath)
+    % 모든 .mat 파일을 재귀적으로 가져오기
+    allFiles = getAllFiles(dirPath, '*.mat');
+    
+    % 파일이 있는 디렉토리의 경로를 기준으로 baseSavePath 설정
+    baseSavePath = fileparts(dirPath);
+
+    % 파일 그룹화 및 통합
+    processFiles(allFiles, baseSavePath);
+end
+
+% Helper Function to Recursively Get All Files
+function fileList = getAllFiles(dirName, filePattern)
+    dirData = dir(fullfile(dirName, '**', filePattern));
+    fileList = {dirData.name}; % 파일 리스트
+    fileList = cellfun(@(x) fullfile(dirData(1).folder, x), fileList, 'UniformOutput', false);
+end
+
+function processFiles(allFiles, baseSavePath)
+    filesStruct = struct();
+
+    for i = 1:length(allFiles)
+        fullPath = allFiles{i}; % 현재 파일의 전체 경로
+        [~, fileName, ~] = fileparts(fullPath);
+        
+        % 파일 이름에서 '_'로 구분된 맨 마지막 부분을 제외한 나머지 부분을 식별자로 사용
+        parts = strsplit(fileName, '_');
+        identifier = strjoin(parts(1:end-1), '_');
+        
+        % 파일 이름에서 유효한 필드 이름 생성
+        identifier = makeValidFieldName(identifier);
+        
+        % 구조체에 파일 경로 저장
+        if ~isfield(filesStruct, identifier)
+            filesStruct.(identifier) = {fullPath};
+        else
+            filesStruct.(identifier){end+1} = fullPath;
+        end
+    end
+
+    % 식별자 별로 그룹화된 파일들을 통합 및 저장
+    for identifierField = fieldnames(filesStruct)'
+        identifier = identifierField{1};
+        fileList = filesStruct.(identifier);
+
+        combined_data = struct(); 
+
+        for fileIdx = 1:length(fileList)
+            filePath = fileList{fileIdx}; 
+            data = load(filePath); 
+
+            dataFields = fieldnames(data);
+            for dataField = dataFields'
+                fieldName = dataField{1};
+                if ~isfield(combined_data, fieldName)
+                    combined_data.(fieldName) = data.(fieldName);
+                else
+                    % vertcat을 사용한 데이터 통합
+                    combined_data.(fieldName) = vertcat(combined_data.(fieldName), data.(fieldName));
+                end
+            end
+        end
+
+        % 파일명에서 '_'로 구분된 부분을 추출
+        parts = strsplit(identifier, '_');
+
+        % 필요한 부분을 추출하여 새로운 파일명 생성
+        newFileName = [parts{1}, '_', parts{2}, '_', parts{3}, '_', parts{4}, '_', parts{5}, '_', parts{6}, '.mat'];
+
+        % 통합된 데이터를 특정 경로에 저장
+        savePath = fullfile(baseSavePath, newFileName); % 새로운 파일명으로 경로 생성
+        save(savePath, 'combined_data', '-v7.3'); % 통합된 데이터 저장
+    end
+end
+
+function validFieldName = makeValidFieldName(inputStr)
+    % 파일 이름에서 유효한 필드 이름 생성
+    validChars = isstrprop(inputStr, 'alphanum') | inputStr == '_';
+    validFieldName = inputStr(validChars);
+    % 필요한 경우 앞에 언더스코어(_) 추가
+    if ~isstrprop(validFieldName(1), 'alpha')
+        validFieldName = ['_', validFieldName];
+    end
+end
