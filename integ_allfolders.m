@@ -15,10 +15,6 @@ end
 function processFolder(folder)
     files = dir(fullfile(folder,'*.mat')); % Load .txt files
 
-    if isempty(files)
-        return; 
-    end
-
     for n = 1:length(files)
         numcell = regexp(files(n).name,'\d+','match');
         files(n).cellnum = str2num(numcell{end-1});
