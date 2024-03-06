@@ -1,10 +1,10 @@
 function AllFolders(baseFolder)
-    % 모든 하위 폴더를 검색
+    % 모든 하위 폴더 가져오기
     subFolders = genpath(baseFolder);
   
     folderList = strsplit(subFolders, pathsep);
     
-    % 하위 폴더에 대해 처리
+    % processFolder 생성
     for k = 1:length(folderList)
         if ~isempty(folderList{k})
             processFolder(folderList{k});
@@ -12,8 +12,10 @@ function AllFolders(baseFolder)
     end
 end
 
+
+% cellnum과 samnum 추출
 function processFolder(folder)
-    files = dir(fullfile(folder,'*.mat')); % Load .mat files
+    files = dir(fullfile(folder,'*.mat')); 
 
     for n = 1:length(files)
         numcell = regexp(files(n).name,'\d+','match');
@@ -29,7 +31,7 @@ function processFolder(folder)
     cellnum_list = unique([files.cellnum]);
     samnum_list = unique([files.samnum]);
 
-    % Sorting files
+    %initialize
     sortedFiles = [];
 
     for i = 1:length(cellnum_list)
@@ -45,11 +47,11 @@ function processFolder(folder)
                 cellfile_list(j).rptflag = 1;
             end
 
-            % Calculate sort priority
+            %  sort priority 계산
             cellfile_list(j).order = cellfile_list(j).expnum + (cellfile_list(j).rptflag == 0) * 0.5;
         end
 
-        % Add sorted files
+        % sorted file 추가
         [~, sortedIndex] = sort([cellfile_list.order]);
         sortedFiles = [sortedFiles; cellfile_list(sortedIndex)]; % Append sorted files for this cell
     end
@@ -62,7 +64,7 @@ function processFolder(folder)
         newNamePart = strjoin(folderParts, '_');
     end
 
-    % Process each cell's merged data
+    %  각 셀들의 merged data 생성 
     for k = 1:length(cellnum_list)
         mergedData = [];
         cellFiles = sortedFiles([sortedFiles.cellnum] == cellnum_list(k)); % Get files for this cell
@@ -95,3 +97,4 @@ function processFolder(folder)
         fprintf('Merged data for cell (samnum: %d, cellnum: %d) saved to %s\n', samnum_list(k), cellnum_list(k), saveFilePath);
     end
 end
+
