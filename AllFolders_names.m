@@ -17,9 +17,9 @@ function processFolder(folder)
 
     for n = 1:length(files)
         numcell = regexp(files(n).name,'\d+','match');
-        if numel(numcell) >= 2 % Ensure that at least two numbers are found in the file name
-            files(n).cellnum = str2double(numcell{end-1}); % Extract the second last number as cellnum
-            files(n).samnum = str2double(numcell{end-2}); % Extract the third last number as samnum
+        if numel(numcell) >= 2 
+            files(n).cellnum = str2double(numcell{end-1}); 
+            files(n).samnum = str2double(numcell{end-2}); 
         else
             warning('File "%s" does not contain enough numerical information.', files(n).name);
         end
