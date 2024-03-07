@@ -155,9 +155,9 @@ for i = 1:length(alltxtfiles)
         for idx = 1:length(sixthColumnData)
 
                 % sheetHeaders{5}와 numPart가 일치하는 경우
-                if any(sixthColumnData == numPart)
+                if any(fifthColumnData == numPart)
                     % numPart와 일치하는 인덱스 찾기
-                    numidx = find(sixthColumnData == numPart);
+                    numidx = find(fifthColumnData == numPart);
 
                     % sheetHeaders{2}와 sheetHeaders{3}에 폴더 분배
                     for k = 1:length(numidx)
